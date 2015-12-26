@@ -7,13 +7,15 @@ package sample
 
 import (
 	"errors"
-	"fmt"
 	"math"
 )
 
 // ErrEmptyInputSample is returned whenever a function in this package receives
 // an empty slice as the population sample to process.
-var ErrEmptyInputSample = errors.New("empty input sample")
+var (
+	ErrEmptyInputSample = errors.New("empty input sample")
+	ErrBesselNeedsTwo   = errors.New("Bessel's correction needs at least two sample points")
+)
 
 // Mean computes the sample mean of a population sample. It receives the
 // population sample as a slice of float64 and returns the sample mean and a
@@ -51,7 +53,7 @@ func StandardDeviation(s []float64, mean *float64) (float64, error) {
 		return math.NaN(), ErrEmptyInputSample
 	}
 	if len(s) == 1 {
-		return math.NaN(), fmt.Errorf("Bessel's correction needs at least two sample points")
+		return math.NaN(), ErrBesselNeedsTwo
 	}
 	if mean == nil {
 		mean = new(float64)

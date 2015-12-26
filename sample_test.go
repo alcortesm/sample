@@ -111,13 +111,23 @@ func TestStandardDeviation(t *testing.T) {
 				i, f.in, f.out, got)
 		}
 	}
+}
 
-	// tests for empty sample
+func TestStandardDeviationErrors(t *testing.T) {
 	got, err := StandardDeviation([]float64{}, nil)
 	if !math.IsNaN(got) {
 		t.Errorf("empty slice) got %f, NaN was expected", got)
 	}
 	if err != ErrEmptyInputSample {
 		t.Errorf("empty slice) returned no ErrEmptyInputSample")
+	}
+
+	// tests Bessel's minimum sample size (2 sample points)
+	got, err = StandardDeviation([]float64{1.0}, nil)
+	if !math.IsNaN(got) {
+		t.Errorf("empty slice) got %f, NaN was expected", got)
+	}
+	if err != ErrBesselNeedsTwo {
+		t.Errorf("empty slice) returned no ErrBesselNeedsTwo")
 	}
 }

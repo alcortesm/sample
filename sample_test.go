@@ -51,7 +51,7 @@ func TestMean(t *testing.T) {
 
 	got, err := Mean([]float64{})
 	if !math.IsNaN(got) {
-		t.Errorf("empty slice) got %f, NaN was expected")
+		t.Errorf("empty slice) got %f, NaN was expected", got)
 	}
 	if err == nil {
 		t.Errorf("empty slice) got no error")

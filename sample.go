@@ -6,16 +6,21 @@ computations.
 package sample
 
 import (
-	"fmt"
+	"errors"
 	"math"
 )
 
-// Mean returns the sample mean and a nil error on success.  If the
-// input parameter has zero elements, it returns `math.NaN()` and an
-// error.
+// ErrEmptyInputSample is returned whenever a function in this package receives
+// an empty slice as the population sample to process.
+var ErrEmptyInputSample = errors.New("empty input sample")
+
+// Mean computes the sample mean of a population sample. It receives the
+// population sample as a slice of float64 and returns the sample mean and a
+// nil error on success.  If the input parameter has zero elements, it returns
+// math.NaN() and ErrEmptyInputSample.
 func Mean(s []float64) (float64, error) {
 	if len(s) == 0 {
-		return math.NaN(), fmt.Errorf("empty sample")
+		return math.NaN(), ErrEmptyInputSample
 	}
 	sum := 0.0
 	for _, sp := range s {

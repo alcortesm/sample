@@ -1,0 +1,13 @@
+language: go
+
+go:
+   tip
+
+before_install:
+   - sudo pip install codecov
+
+script:
+   - go test -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+   - bash <(curl -s https://codecov.io/bash)

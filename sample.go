@@ -12,8 +12,13 @@ import (
 
 // ErrBesselNeedsTwo is returned whenever the sample length is less than 2
 // sample points, as required by Bessel's correction.
+//
+// ErrNotAPercentile is returned when the confidence level for
+// MeanConfidenceIntervals is not in the percentile range.
 var (
-	ErrBesselNeedsTwo = errors.New("Bessel's correction needs at least two sample points")
+	ErrBesselNeedsTwo     = errors.New("Bessel's correction needs at least two sample points")
+	ErrNotAPercentile     = errors.New("number is not a percentile (0<=x<=1)")
+	ErrNotPositiveInteger = errors.New("number is not a positive integer (0<n)")
 )
 
 // Sample zero values are not safe, use the New function to initialize Sample
@@ -100,4 +105,21 @@ func (s *Sample) StandardError() float64 {
 	*s.se = *s.sd / math.Sqrt(float64(len(s.data)))
 
 	return *s.se
+}
+
+// Returns the p percentile of a t-distribution (aka. Student distribution) of
+// d degrees of freedom and nil on success. Returns 0.0 and an error if p is
+// not a percentile (between 0.0 and 1.0) or if the degrees of freedom is not a
+// positive integer.
+func studentPercentile(n float64, d int) (float64, error) {
+	if n < 0.0 || n > 1.0 {
+		return 0.0, ErrNotAPercentile
+	}
+
+	if d < 1 {
+		panic("the degrees of fredom for a student-t distribution are not a positive integer")
+	}
+
+	// TODO: find in t_table based on degrees and confidence
+	return 0.0, nil
 }

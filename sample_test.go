@@ -2,6 +2,7 @@ package sample
 
 import (
 	"math"
+	"reflect"
 	"testing"
 )
 
@@ -14,56 +15,70 @@ func equals(a, b float64) bool {
 	return false
 }
 
+func TestNewErrors(t *testing.T) {
+	for i, f := range [...][]float64{
+		{},
+		{1.0},
+	} {
+		s, err := New(f)
+		if s != nil {
+			t.Fatalf("%d) in=%v, should have returned nil, but got: %v", i, f, s)
+		}
+		if err != ErrBesselNeedsTwo {
+			t.Fatalf("%d) in=%v, should have returned ErrBesselNeedsTwo", i, f)
+		}
+	}
+}
+
+func TestNew(t *testing.T) {
+	for i, f := range [...][]float64{
+		{1.0, 1},
+		{1.0, 2, -3.1415952},
+		{1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+	} {
+		s, err := New(f)
+		if err != nil {
+			t.Fatalf("%d) in=%v, returned error: %v", i, f, err)
+		}
+		if !reflect.DeepEqual(f, s.data) {
+			t.Errorf("%d) in=%v, expected=%[2]v, got=%v", i, f, s.data)
+		}
+	}
+}
+
 func TestMean(t *testing.T) {
 	for i, f := range [...]struct {
 		in  []float64
 		out float64
 	}{
-		{
-			in:  []float64{1.0},
-			out: 1.0,
-		},
-		{
-			in:  []float64{-1.0, -1.0},
-			out: -1.0,
-		},
-		{
-			in:  []float64{1, 2, 3, 4, 5, 6},
-			out: 3.5,
-		},
-		{
-			in:  []float64{0, 1, -1, 2, -2},
-			out: 0.0,
-		},
-		{
-			in: []float64{
-				3.005,
-				3.005,
-				3.005,
-				3.005,
-				3.005,
-				3.005002,
-				3.004998,
-			},
-			out: 3.005,
-		},
+		{in: []float64{-1.0, -1.0}, out: -1.0},
+		{in: []float64{1, 2, 3, 4, 5, 6}, out: 3.5},
+		{in: []float64{0, 1, -1, 2, -2}, out: 0.0},
+		{in: []float64{3.005, 3.005, 3.005, 3.005, 3.005, 3.005002, 3.004998}, out: 3.005},
 	} {
-		got, err := Mean(f.in)
+		s, err := New(f.in)
 		if err != nil {
-			t.Errorf("%d) in=%v, returned error: %v", i, f.in, err)
+			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
+		got := s.Mean()
 		if !equals(got, f.out) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
 	}
+}
 
-	got, err := Mean([]float64{})
-	if !math.IsNaN(got) {
-		t.Errorf("empty slice) got %f, NaN was expected", got)
+func TestMeanAlreadyComputed(t *testing.T) {
+	f := []float64{1.0, 1}
+	s, err := New(f)
+	if err != nil {
+		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	if err != ErrEmptyInputSample {
-		t.Errorf("empty slice) got no ErrEmptyInputSample")
+	first := s.Mean()
+	second := s.Mean()
+	if !equals(first, second) {
+		t.Errorf("precomputed mean and new mean differs: sample=%v, first mean=%f, second mean=%f",
+			f, first, second)
 	}
 }
 
@@ -72,62 +87,33 @@ func TestStandardDeviation(t *testing.T) {
 		in  []float64
 		out float64
 	}{
-		{
-			in:  []float64{1.0, 1.0},
-			out: 0.0,
-		},
-		{
-			in:  []float64{1.0, 2.0},
-			out: 0.707,
-		},
-		{
-			in:  []float64{1.0, 2, 3, 4, 5, 6},
-			out: 1.870,
-		},
-		{
-			in:  []float64{-2.0, -1, 0, 1, 2, 3},
-			out: 1.870,
-		},
+		{in: []float64{1.0, 1.0}, out: 0.0},
+		{in: []float64{1.0, 2.0}, out: 0.707},
+		{in: []float64{1.0, 2, 3, 4, 5, 6}, out: 1.870},
+		{in: []float64{-2.0, -1, 0, 1, 2, 3}, out: 1.870},
 	} {
-		got, err := StandardDeviation(f.in, nil)
+		s, err := New(f.in)
 		if err != nil {
-			t.Errorf("%d) in=%v, returned error: %v", i, f.in, err)
+			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
+		got := s.StandardDeviation()
 		if !equals(got, f.out) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
-				i, f.in, f.out, got)
-		}
-		// the same tests, but providing the mean
-		mean, err := Mean(f.in)
-		if err != nil {
-			t.Errorf("%d) [with mean] unexpected error calculating the mean: %s", i, err)
-		}
-		got, err = StandardDeviation(f.in, &mean)
-		if err != nil {
-			t.Errorf("%d) [with mean] in=%v, returned error: %v", i, f.in, err)
-		}
-		if !equals(got, f.out) {
-			t.Errorf("%d) [with mean] in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
 	}
 }
 
-func TestStandardDeviationErrors(t *testing.T) {
-	got, err := StandardDeviation([]float64{}, nil)
-	if !math.IsNaN(got) {
-		t.Errorf("empty slice) got %f, NaN was expected", got)
+func TestStandardDeviationAlreadyComputed(t *testing.T) {
+	f := []float64{1.0, 1}
+	s, err := New(f)
+	if err != nil {
+		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	if err != ErrEmptyInputSample {
-		t.Errorf("empty slice) returned no ErrEmptyInputSample")
-	}
-
-	// tests Bessel's minimum sample size (2 sample points)
-	got, err = StandardDeviation([]float64{1.0}, nil)
-	if !math.IsNaN(got) {
-		t.Errorf("empty slice) got %f, NaN was expected", got)
-	}
-	if err != ErrBesselNeedsTwo {
-		t.Errorf("empty slice) returned no ErrBesselNeedsTwo")
+	first := s.StandardDeviation()
+	second := s.StandardDeviation()
+	if !equals(first, second) {
+		t.Errorf("precomputed standard deviation and new one differs: sample=%v, first sd=%f, second sd=%f",
+			f, first, second)
 	}
 }

@@ -10,60 +10,77 @@ import (
 	"math"
 )
 
-// ErrEmptyInputSample is returned whenever a function in this package receives
-// an empty slice as the population sample to process.
+// ErrBesselNeedsTwo is returned whenever the sample length is less than 2
+// sample points, as required by Bessel's correction.
 var (
-	ErrEmptyInputSample = errors.New("empty input sample")
-	ErrBesselNeedsTwo   = errors.New("Bessel's correction needs at least two sample points")
+	ErrBesselNeedsTwo = errors.New("Bessel's correction needs at least two sample points")
 )
 
-// Mean computes the sample mean of a population sample. It receives the
-// population sample as a slice of float64 and returns the sample mean and a
-// nil error on success.  If the input parameter has zero elements, it returns
-// math.NaN() and ErrEmptyInputSample.
-func Mean(s []float64) (float64, error) {
-	if len(s) == 0 {
-		return math.NaN(), ErrEmptyInputSample
+// Sample zero values are not safe, use the New function to initialize Sample
+// types.
+type Sample struct {
+	data []float64
+	// memoization:
+	mean *float64
+	sd   *float64
+}
+
+// New returns an Sample value initialized with a *copy* of its parameter and a
+// nil error on success. It returns nil and ErrBesselNeedsTwo if the sample
+// length is smaller than 2.
+//
+// A copy of the data is used internally to protect it from future
+// modifications, allowing for memoizaton of already computed statistical
+// values.
+func New(data []float64) (*Sample, error) {
+	if len(data) < 2 {
+		return nil, ErrBesselNeedsTwo
 	}
+	sample := new(Sample)
+	sample.data = make([]float64, len(data))
+	copy(sample.data, data)
+	return sample, nil
+}
+
+// Mean computes the sample mean of a population sample or returns its
+// previously computed value.
+func (s *Sample) Mean() float64 {
+	if s.mean != nil {
+		return *s.mean
+	}
+	s.mean = new(float64)
+
 	sum := 0.0
-	for _, sp := range s {
-		sum += sp
+	for i := range s.data {
+		sum += s.data[i]
 	}
-	return sum / float64(len(s)), nil
+	*s.mean = sum / float64(len(s.data))
+
+	return *s.mean
 }
 
 // StandardDeviation computes the sample-based unbiased estimation of the
-// standard deviation of a population.
+// standard deviation of a population or returns its previously computed value.
 //
-// It receives the population sample as a slice of float64 and (optionally) its
-// mean. The function returns the estimate standard deviation of the population
-// and a nil error.  If the input parameter has zero elements, it returns
-// math.NaN() and ErrEmptyInputSample.
-//
-// If the provided mean is nil, it will be calculated by the function.
-//
-// This implementation uses the Bessel's correction and therefore needs at
-// least a sample population of 2 sample points or more.
-//
-// This implementation is downward biassed as per Jensen's inequality.
+// This implementation uses the Bessel's correction and is downward biassed as
+// per Jensen's inequality.
 //
 // It is calculated as sqrt(1/(N-1) sum_i_N(x_i-mean(x))).
-func StandardDeviation(s []float64, mean *float64) (float64, error) {
-	if len(s) == 0 {
-		return math.NaN(), ErrEmptyInputSample
+func (s *Sample) StandardDeviation() float64 {
+	if s.sd != nil {
+		return *s.sd
 	}
-	if len(s) == 1 {
-		return math.NaN(), ErrBesselNeedsTwo
-	}
-	if mean == nil {
-		mean = new(float64)
-		*mean, _ = Mean(s) // empty slice error already checked
-	}
+	s.sd = new(float64)
+
+	s.Mean()
+
 	sum := 0.0
-	for _, sp := range s {
-		diff := sp - *mean
-		squared := diff * diff
-		sum += squared
+	var diff float64
+	for _, sp := range s.data {
+		diff = sp - *s.mean
+		sum += diff * diff
 	}
-	return math.Sqrt(sum / float64(len(s)-1)), nil
+	*s.sd = math.Sqrt(sum / float64(len(s.data)-1))
+
+	return *s.sd
 }

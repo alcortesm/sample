@@ -23,6 +23,7 @@ type Sample struct {
 	// memoization:
 	mean *float64
 	sd   *float64
+	se   *float64
 }
 
 // New returns an Sample value initialized with a *copy* of its parameter and a
@@ -83,4 +84,20 @@ func (s *Sample) StandardDeviation() float64 {
 	*s.sd = math.Sqrt(sum / float64(len(s.data)-1))
 
 	return *s.sd
+}
+
+// StandardError returns the standard deviation of the sampling
+// distribution of the mean, also known as the "Standard Error of the
+// Mean".
+func (s *Sample) StandardError() float64 {
+	if s.se != nil {
+		return *s.se
+	}
+	s.se = new(float64)
+
+	s.StandardDeviation()
+
+	*s.se = *s.sd / math.Sqrt(float64(len(s.data)))
+
+	return *s.se
 }

@@ -117,3 +117,39 @@ func TestStandardDeviationAlreadyComputed(t *testing.T) {
 			f, first, second)
 	}
 }
+
+func TestStandardError(t *testing.T) {
+	for i, f := range [...]struct {
+		in  []float64
+		out float64
+	}{
+		{in: []float64{1.0, 1.0}, out: 0.0},
+		{in: []float64{1.0, 2.0}, out: 0.5},
+		{in: []float64{1.0, 2, 3, 4, 5, 6}, out: 0.763},
+		{in: []float64{-2.0, -1, 0, 1, 2, 3}, out: 0.763},
+	} {
+		s, err := New(f.in)
+		if err != nil {
+			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
+		}
+		got := s.StandardError()
+		if !equals(got, f.out) {
+			t.Errorf("%d) in=%v, out=%f, got=%f",
+				i, f.in, f.out, got)
+		}
+	}
+}
+
+func TestStandardErrorAlreadyComputed(t *testing.T) {
+	f := []float64{1.0, 1}
+	s, err := New(f)
+	if err != nil {
+		t.Fatalf("in=%v, New returned error: %v", f, err)
+	}
+	first := s.StandardError()
+	second := s.StandardError()
+	if !equals(first, second) {
+		t.Errorf("precomputed standard error and new one differs: sample=%v, first sd=%f, second sd=%f",
+			f, first, second)
+	}
+}

@@ -1,6 +1,10 @@
 package sample
 
-import "testing"
+import (
+	"fmt"
+	"math"
+	"testing"
+)
 
 func TestIndexOfEqualOrClosestLower(t *testing.T) {
 	for i, f := range [...]struct {
@@ -251,5 +255,50 @@ func TestIndexOfEqualOrClosestHigher(t *testing.T) {
 			}
 			// nil error and correct output returned
 		}
+	}
+}
+
+func TestStudentTwoSidedCriticalValue(t *testing.T) {
+	for i, f := range [...]struct {
+		degree     int64
+		confidence float64
+		expected   float64
+	}{
+		{degree: 1, confidence: 50.0, expected: 1.000},
+		{degree: 2, confidence: 50.0, expected: 0.816},
+		{degree: math.MaxInt64, confidence: 50.0, expected: 0.674},
+		{degree: 10, confidence: 95.0, expected: 2.228},
+		{degree: 20, confidence: 95.0, expected: 2.086},
+		{degree: math.MaxInt64, confidence: 95.0, expected: 1.960},
+		{degree: 45, confidence: 96.0, expected: 2.423}, // d=40, c=0.98
+		{degree: 4, confidence: 95.0, expected: 2.776},
+	} {
+		output, err := studentTwoSidedCriticalValue(f.degree, f.confidence)
+		if err != nil {
+			t.Errorf("%d) degree=%d, confidence=%f, expected=%f, returned an error: %s",
+				i, f.degree, f.confidence, f.expected, err)
+		}
+		if !equals(f.expected, output, 1e-5) {
+			t.Errorf("%d) degree=%d, confidence=%f, expected=%f, wrong critical value returned: %f",
+				i, f.degree, f.confidence, f.expected, output)
+		}
+	}
+}
+
+func TestStudentTwoSidedCriticalValueErrors(t *testing.T) {
+	_, err := studentTwoSidedCriticalValue(10, 110.0)
+	expected := "cannot approximate confidence: no bigger data value found"
+	output := fmt.Sprintf("%s", err)
+	if output != expected {
+		t.Errorf("higer confidence)\n\texpected error: %q\n\toutput error : %q\n",
+			expected, output)
+	}
+
+	_, err = studentTwoSidedCriticalValue(0, 50.0)
+	expected = "cannot approximate degrees of freedom: no lower data value found"
+	output = fmt.Sprintf("%s", err)
+	if output != expected {
+		t.Errorf("lower degrees)\n\texpected error: %q\n\toutput error : %q\n",
+			expected, output)
 	}
 }

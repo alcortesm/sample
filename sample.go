@@ -106,20 +106,3 @@ func (s *Sample) StandardError() float64 {
 
 	return *s.se
 }
-
-// Returns the p percentile of a t-distribution (aka. Student distribution) of
-// d degrees of freedom and nil on success. Returns 0.0 and an error if p is
-// not a percentile (between 0.0 and 1.0) or if the degrees of freedom is not a
-// positive integer.
-func studentPercentile(n float64, d int) (float64, error) {
-	if n < 0.0 || n > 1.0 {
-		return 0.0, ErrNotAPercentile
-	}
-
-	if d < 1 {
-		panic("the degrees of fredom for a student-t distribution are not a positive integer")
-	}
-
-	// TODO: find in t_table based on degrees and confidence
-	return 0.0, nil
-}

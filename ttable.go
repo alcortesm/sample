@@ -2,24 +2,45 @@ package sample
 
 import (
 	"errors"
+	"fmt"
 	"math"
 )
 
 var (
 	errEmptySlice   = errors.New("empty slice")
-	errDataTooBig   = errors.New("cannot approximate, no lower data value found")
-	errDataTooSmall = errors.New("cannot approximate, no bigger data value found")
+	errDataTooBig   = errors.New("no lower data value found")
+	errDataTooSmall = errors.New("no bigger data value found")
 )
 
-// Returns the index of the closest lower approximation to degree of
-// fredom 'd' in the ttable and a nil error. This is, it returns a worst
-// case approximation to the degree of freedom 'd' based on the
-// available data in the ttable.
+// Returns the 2-sided critical values of a Student-t distribution with
+// 'd' degrees of freedom and a percentile of 'p'.
 //
-// If the ttable has no degrees of fredom, or all degrees are too big
-// for 'd', it returns 0 and an error.
-func degreeIndexOfEqualOrClosestLower(d int64) (int, error) {
-	return indexOfEqualOrClosestLower(d, degrees)
+// The values are looked up in a table, using the lower closest
+// approximation to 'd' and higer closest approximaiton of 'c' in the
+// table (this is, it returns a conservative approximation for values
+// not present in the table).
+func studentTwoSidedCriticalValue(d int64, c float64) (float64, error) {
+	type resultAndError struct {
+		index int
+		err   error
+	}
+	ch := make(chan *resultAndError)
+	go func() {
+		i, err := indexOfEqualOrClosestLower(d, degrees)
+		ch <- &resultAndError{index: i, err: err}
+	}()
+
+	confidenceIndex, err := indexOfEqualOrClosestHigher(c, percentile)
+	if err != nil {
+		return 0.0, fmt.Errorf("cannot approximate confidence: %s", err)
+	}
+
+	degree := <-ch
+	if degree.err != nil {
+		return 0.0, fmt.Errorf("cannot approximate degrees of freedom: %s", degree.err)
+	}
+
+	return tTable[degree.index][confidenceIndex], nil
 }
 
 // Finds the index of integer 'n' in a sorted (ascending) slice 's'.
@@ -64,17 +85,6 @@ func indexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
 			b = m
 		}
 	}
-}
-
-// Returns the index of the closest higher approximation to confidence
-// 'c' in the ttable and a nil error. This is, it returns a worst case
-// approximation to the confidence 'c' based on the available data in
-// the ttable.
-//
-// If the ttable has no confidence values, or all confidence values are
-// too small for 'c', it returns 0 and an error.
-func confidenceIndexOfEqualOrClosestHigher(c float64) (int, error) {
-	return indexOfEqualOrClosestHigher(c, percentile)
 }
 
 // Finds the index of integer 'n' in a sorted (ascending) slice 's'.

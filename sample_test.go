@@ -8,7 +8,7 @@ import (
 
 const tolerance = 1e-3
 
-func equals(a, b float64) bool {
+func equals(a, b, tolerance float64) bool {
 	if math.Abs(a-b) < tolerance {
 		return true
 	}
@@ -61,7 +61,7 @@ func TestMean(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
 		got := s.Mean()
-		if !equals(got, f.out) {
+		if !equals(got, f.out, tolerance) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
@@ -76,7 +76,7 @@ func TestMeanAlreadyComputed(t *testing.T) {
 	}
 	first := s.Mean()
 	second := s.Mean()
-	if !equals(first, second) {
+	if !equals(first, second, tolerance) {
 		t.Errorf("precomputed mean and new mean differs: sample=%v, first mean=%f, second mean=%f",
 			f, first, second)
 	}
@@ -97,7 +97,7 @@ func TestStandardDeviation(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
 		got := s.StandardDeviation()
-		if !equals(got, f.out) {
+		if !equals(got, f.out, tolerance) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
@@ -112,7 +112,7 @@ func TestStandardDeviationAlreadyComputed(t *testing.T) {
 	}
 	first := s.StandardDeviation()
 	second := s.StandardDeviation()
-	if !equals(first, second) {
+	if !equals(first, second, tolerance) {
 		t.Errorf("precomputed standard deviation and new one differs: sample=%v, first sd=%f, second sd=%f",
 			f, first, second)
 	}
@@ -133,7 +133,7 @@ func TestStandardError(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
 		got := s.StandardError()
-		if !equals(got, f.out) {
+		if !equals(got, f.out, tolerance) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
@@ -148,7 +148,7 @@ func TestStandardErrorAlreadyComputed(t *testing.T) {
 	}
 	first := s.StandardError()
 	second := s.StandardError()
-	if !equals(first, second) {
+	if !equals(first, second, tolerance) {
 		t.Errorf("precomputed standard error and new one differs: sample=%v, first sd=%f, second sd=%f",
 			f, first, second)
 	}

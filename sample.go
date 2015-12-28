@@ -48,6 +48,14 @@ func New(data []float64) (*Sample, error) {
 	return sample, nil
 }
 
+func sum(s []float64) float64 {
+	sum := 0.0
+	for i := range s {
+		sum += s[i]
+	}
+	return sum
+}
+
 // Mean computes the sample mean of a population sample or returns its
 // previously computed value.
 func (s *Sample) Mean() float64 {
@@ -56,12 +64,7 @@ func (s *Sample) Mean() float64 {
 	}
 	s.mean = new(float64)
 
-	// TODO: the sum can be done concurrently
-	sum := 0.0
-	for i := range s.data {
-		sum += s.data[i]
-	}
-	*s.mean = sum / float64(len(s.data))
+	*s.mean = sum(s.data) / float64(len(s.data))
 
 	return *s.mean
 }

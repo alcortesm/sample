@@ -153,3 +153,25 @@ func TestStandardErrorAlreadyComputed(t *testing.T) {
 			f, first, second)
 	}
 }
+
+func TestSum(t *testing.T) {
+	for i, f := range [...]struct {
+		input    []float64
+		expected float64
+	}{
+		{input: []float64{}, expected: 0.0},
+		{input: []float64{0.0}, expected: 0.0},
+		{input: []float64{0.0, 0.0}, expected: 0.0},
+		{input: []float64{0.0, 0.0, 0.0}, expected: 0.0},
+		{input: []float64{1.0, -1.0, 0.0}, expected: 0.0},
+		{input: []float64{1.0, 2.0, 3.0, 4.0}, expected: 10.0},
+	} {
+		output := sum(f.input)
+		if !equals(output, f.expected, tolerance) {
+			t.Errorf("%d) input=%v, expected=%f, output=%f",
+				i, f.input, f.expected, output)
+		}
+	}
+}
+
+// TODO: Add benchmark for sum() before adding a concurrent version

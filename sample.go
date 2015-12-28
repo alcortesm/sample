@@ -56,6 +56,7 @@ func (s *Sample) Mean() float64 {
 	}
 	s.mean = new(float64)
 
+	// TODO: the sum can be done concurrently
 	sum := 0.0
 	for i := range s.data {
 		sum += s.data[i]
@@ -80,6 +81,7 @@ func (s *Sample) StandardDeviation() float64 {
 
 	s.Mean()
 
+	// TODO: this sum can be done concurrently
 	sum := 0.0
 	var diff float64
 	for _, sp := range s.data {

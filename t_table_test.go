@@ -2,7 +2,7 @@ package sample
 
 import "testing"
 
-func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
+func TestindexOfEqualOrClosestLower(t *testing.T) {
 	for i, f := range [...]struct {
 		s   []int64
 		n   int64
@@ -10,22 +10,22 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		out int
 	}{
 		{[]int64{}, 1, errEmptySlice, 0},
-		{[]int64{1}, 0, errInsufficientDataLow, 0},
+		{[]int64{1}, 0, errDataTooBig, 0},
 		{[]int64{1}, 1, nil, 0},
 		{[]int64{1}, 2, nil, 0},
-		{[]int64{1, 3}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3}, 0, errDataTooBig, 0},
 		{[]int64{1, 3}, 1, nil, 0},
 		{[]int64{1, 3}, 2, nil, 0},
 		{[]int64{1, 3}, 3, nil, 1},
 		{[]int64{1, 3}, 4, nil, 1},
-		{[]int64{1, 3, 5}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5}, 1, nil, 0},
 		{[]int64{1, 3, 5}, 2, nil, 0},
 		{[]int64{1, 3, 5}, 3, nil, 1},
 		{[]int64{1, 3, 5}, 4, nil, 1},
 		{[]int64{1, 3, 5}, 5, nil, 2},
 		{[]int64{1, 3, 5}, 6, nil, 2},
-		{[]int64{1, 3, 5, 7}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5, 7}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5, 7}, 1, nil, 0},
 		{[]int64{1, 3, 5, 7}, 2, nil, 0},
 		{[]int64{1, 3, 5, 7}, 3, nil, 1},
@@ -34,7 +34,7 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		{[]int64{1, 3, 5, 7}, 6, nil, 2},
 		{[]int64{1, 3, 5, 7}, 7, nil, 3},
 		{[]int64{1, 3, 5, 7}, 8, nil, 3},
-		{[]int64{1, 3, 5, 7, 9}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5, 7, 9}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5, 7, 9}, 1, nil, 0},
 		{[]int64{1, 3, 5, 7, 9}, 2, nil, 0},
 		{[]int64{1, 3, 5, 7, 9}, 3, nil, 1},
@@ -45,7 +45,7 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		{[]int64{1, 3, 5, 7, 9}, 8, nil, 3},
 		{[]int64{1, 3, 5, 7, 9}, 9, nil, 4},
 		{[]int64{1, 3, 5, 7, 9}, 10, nil, 4},
-		{[]int64{1, 3, 5, 7, 9, 11}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5, 7, 9, 11}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5, 7, 9, 11}, 1, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11}, 2, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11}, 3, nil, 1},
@@ -58,7 +58,7 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		{[]int64{1, 3, 5, 7, 9, 11}, 10, nil, 4},
 		{[]int64{1, 3, 5, 7, 9, 11}, 11, nil, 5},
 		{[]int64{1, 3, 5, 7, 9, 11}, 12, nil, 5},
-		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 1, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 2, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 3, nil, 1},
@@ -81,7 +81,7 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 20, nil, 9},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 21, nil, 10},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21}, 22, nil, 10},
-		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 0, errInsufficientDataLow, 0},
+		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 0, errDataTooBig, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 1, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 2, nil, 0},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 3, nil, 1},
@@ -107,7 +107,7 @@ func TestFindIndexOfEqualOrClosestLower(t *testing.T) {
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 23, nil, 11},
 		{[]int64{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23}, 24, nil, 11},
 	} {
-		got, err := findIndexOfEqualOrClosestLower(f.n, f.s)
+		got, err := indexOfEqualOrClosestLower(f.n, f.s)
 		if f.err != nil {
 			if err == nil {
 				t.Errorf("%d) s=%v, n=%d, expected error %q, none returned, got=%d instead", i, f.s, f.n, f.err, got)

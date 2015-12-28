@@ -6,6 +6,68 @@ import (
 	"math"
 )
 
+var errEmptySlice = errors.New("empty slice")
+var errDataTooBig = errors.New("cannot approximate, no lower data value found")
+
+// Returns the index of the closest lower approximation to degree of
+// fredom 'd' in the ttable and a nil error. This is, it returns a worst
+// case approximation to the degree of freedom 'd' based on the
+// available data in the ttable.
+//
+// If the ttable has no degrees of fredom, or all degrees are too big
+// for 'd', it returns 0 and an error.
+func degreeIndexOfEqualOrClosestLower(d int64) (int, error) {
+	i, err := indexOfEqualOrClosestLower(d, degrees)
+	if err != nil {
+		return 0, fmt.Errorf("looking up degrees of freedom index in table: %s", err)
+	}
+	return i, nil
+}
+
+// Finds the index of integer 'n' in a sorted (ascending) slice 's'.
+//
+// If 'n' is not found in 's', it returns the index of the closest
+// integer to 'n' that is smaller than 'n'.
+//
+// If all integers in 's' are bigger than 'n', it returns errDataTooBig.
+//
+// If 's' is empty, it returns errEmptySlice.
+func indexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
+	if len(s) == 0 {
+		return 0, errEmptySlice
+	}
+
+	if n < s[0] {
+		return 0, errDataTooBig
+	}
+
+	if n > s[len(s)-1] {
+		return len(s) - 1, nil
+	}
+
+	b := 0
+	e := len(s) - 1
+	var m int
+	for {
+		if e-b < 2 {
+			if s[e] == n {
+				return e, nil
+			}
+			return b, nil
+		}
+
+		m = b + (e-b)/2
+		if n == s[m] {
+			return m, nil
+		}
+		if n < s[m] {
+			e = m
+		} else {
+			b = m
+		}
+	}
+}
+
 // from https://en.wikipedia.org/wiki/Student%27s_t-distribution#Table_of_selected_values
 var degrees = []int64{
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -55,66 +117,4 @@ var tTable = [][]float64{
 	[]float64{0.677, 0.845, 1.042, 1.290, 1.660, 1.984, 2.364, 2.626, 2.871, 3.174, 3.390},
 	[]float64{0.677, 0.845, 1.041, 1.289, 1.658, 1.980, 2.358, 2.617, 2.860, 3.160, 3.373},
 	[]float64{0.674, 0.842, 1.036, 1.282, 1.645, 1.960, 2.326, 2.576, 2.807, 3.090, 3.291},
-}
-
-// Returns the index of the closest lower approximation to degree of
-// fredom 'd' in the ttable and a nil error. This is, it returns a worst
-// case approximation to the degree of freedom 'd' based on the
-// available data in the ttable.
-//
-// If the ttable has no degrees of fredom, or all degrees are too big
-// for 'd', it returns 0 and an error.
-func degreeIndexOfEqualOrClosestLower(d int64) (int, error) {
-	i, err := indexOfEqualOrClosestLower(d, degrees)
-	if err != nil {
-		return 0, fmt.Errorf("looking up degrees of freedom index in table: %s", err)
-	}
-	return i, nil
-}
-
-var errEmptySlice = errors.New("empty slice")
-var errDataTooBig = errors.New("cannot approximate, no lower data value found")
-
-// Finds the index of integer 'n' in a sorted (ascending) slice 's'.
-//
-// If 'n' is not found in 's', it returns the index of the closest
-// integer to 'n' that is smaller than 'n'.
-//
-// If all integers in 's' are bigger than 'n', it returns errDataTooBig.
-//
-// If 's' is empty, it returns errEmptySlice.
-func indexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
-	if len(s) == 0 {
-		return 0, errEmptySlice
-	}
-
-	if n < s[0] {
-		return 0, errDataTooBig
-	}
-
-	if n > s[len(s)-1] {
-		return len(s) - 1, nil
-	}
-
-	b := 0
-	e := len(s) - 1
-	var m int
-	for {
-		if e-b < 2 {
-			if s[e] == n {
-				return e, nil
-			}
-			return b, nil
-		}
-
-		m = b + (e-b)/2
-		if n == s[m] {
-			return m, nil
-		}
-		if n < s[m] {
-			e = m
-		} else {
-			b = m
-		}
-	}
 }

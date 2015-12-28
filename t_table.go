@@ -72,21 +72,34 @@ func findIndexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
 	if len(s) == 0 {
 		return 0, errEmptySlice
 	}
-	if s[0] > n {
+
+	if n < s[0] {
 		return 0, errInsufficientDataLow
 	}
 
-	var candidate int = -1
-	for i := range s {
-		if s[i] > n {
-			return candidate, nil
+	if n > s[len(s)-1] {
+		return len(s) - 1, nil
+	}
+
+	b := 0
+	e := len(s) - 1
+	var m int
+	for {
+		if e-b < 2 {
+			if s[e] == n {
+				return e, nil
+			}
+			return b, nil
 		}
-		candidate = i
-	}
 
-	if candidate == -1 {
-		panic("asked for a Student-t with < 1 degrees of freedom")
+		m = b + (e-b)/2
+		if n == s[m] {
+			return m, nil
+		}
+		if n < s[m] {
+			e = m
+		} else {
+			b = m
+		}
 	}
-
-	return candidate, nil
 }

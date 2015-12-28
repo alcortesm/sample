@@ -2,12 +2,14 @@ package sample
 
 import (
 	"errors"
-	"fmt"
 	"math"
 )
 
-var errEmptySlice = errors.New("empty slice")
-var errDataTooBig = errors.New("cannot approximate, no lower data value found")
+var (
+	errEmptySlice   = errors.New("empty slice")
+	errDataTooBig   = errors.New("cannot approximate, no lower data value found")
+	errDataTooSmall = errors.New("cannot approximate, no bigger data value found")
+)
 
 // Returns the index of the closest lower approximation to degree of
 // fredom 'd' in the ttable and a nil error. This is, it returns a worst
@@ -17,11 +19,7 @@ var errDataTooBig = errors.New("cannot approximate, no lower data value found")
 // If the ttable has no degrees of fredom, or all degrees are too big
 // for 'd', it returns 0 and an error.
 func degreeIndexOfEqualOrClosestLower(d int64) (int, error) {
-	i, err := indexOfEqualOrClosestLower(d, degrees)
-	if err != nil {
-		return 0, fmt.Errorf("looking up degrees of freedom index in table: %s", err)
-	}
-	return i, nil
+	return indexOfEqualOrClosestLower(d, degrees)
 }
 
 // Finds the index of integer 'n' in a sorted (ascending) slice 's'.
@@ -54,6 +52,61 @@ func indexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
 				return e, nil
 			}
 			return b, nil
+		}
+
+		m = b + (e-b)/2
+		if n == s[m] {
+			return m, nil
+		}
+		if n < s[m] {
+			e = m
+		} else {
+			b = m
+		}
+	}
+}
+
+// Returns the index of the closest higher approximation to confidence
+// 'c' in the ttable and a nil error. This is, it returns a worst case
+// approximation to the confidence 'c' based on the available data in
+// the ttable.
+//
+// If the ttable has no confidence values, or all confidence values are
+// too small for 'c', it returns 0 and an error.
+func confidenceIndexOfEqualOrClosestHigher(c float64) (int, error) {
+	return indexOfEqualOrClosestHigher(c, percentile)
+}
+
+// Finds the index of integer 'n' in a sorted (ascending) slice 's'.
+//
+// If 'n' is not found in 's', it returns the index of the closest
+// integer to 'n' that is smaller than 'n'.
+//
+// If all integers in 's' are bigger than 'n', it returns errDataTooBig.
+//
+// If 's' is empty, it returns errEmptySlice.
+func indexOfEqualOrClosestHigher(n float64, s []float64) (i int, err error) {
+	if len(s) == 0 {
+		return 0, errEmptySlice
+	}
+
+	if n < s[0] {
+		return 0, nil
+	}
+
+	if n > s[len(s)-1] {
+		return 0, errDataTooSmall
+	}
+
+	b := 0
+	e := len(s) - 1
+	var m int
+	for {
+		if e-b < 2 {
+			if s[b] == n {
+				return b, nil
+			}
+			return e, nil
 		}
 
 		m = b + (e-b)/2

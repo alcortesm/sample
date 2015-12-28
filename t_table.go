@@ -1,9 +1,13 @@
 package sample
 
-import "math"
+import (
+	"errors"
+	"fmt"
+	"math"
+)
 
 // from https://en.wikipedia.org/wiki/Student%27s_t-distribution#Table_of_selected_values
-var fDegrees = []int64{
+var degrees = []int64{
 	1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 	11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
@@ -53,11 +57,29 @@ var tTable = [][]float64{
 	[]float64{0.674, 0.842, 1.036, 1.282, 1.645, 1.960, 2.326, 2.576, 2.807, 3.090, 3.291},
 }
 
-func equalOrLowerDegreeIndex(d int64) int {
+func equalOrClosestLowerDegreeIndex(d int64) (int, error) {
+	i, err := findIndexOfEqualOrClosestLower(d, degrees)
+	if err != nil {
+		return 0, fmt.Errorf("looking up degrees of freedom index in table: %s", err)
+	}
+	return i, nil
+}
+
+var errEmptySlice = errors.New("empty slice")
+var errInsufficientDataLow = errors.New("cannot approximate, number too low for the data set")
+
+func findIndexOfEqualOrClosestLower(n int64, s []int64) (i int, err error) {
+	if len(s) == 0 {
+		return 0, errEmptySlice
+	}
+	if s[0] > n {
+		return 0, errInsufficientDataLow
+	}
+
 	var candidate int = -1
-	for i := range fDegrees {
-		if fDegrees[i] > d {
-			return candidate
+	for i := range s {
+		if s[i] > n {
+			return candidate, nil
 		}
 		candidate = i
 	}
@@ -66,5 +88,5 @@ func equalOrLowerDegreeIndex(d int64) int {
 		panic("asked for a Student-t with < 1 degrees of freedom")
 	}
 
-	return candidate
+	return candidate, nil
 }

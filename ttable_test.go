@@ -2,7 +2,7 @@ package sample
 
 import "testing"
 
-func TestindexOfEqualOrClosestLower(t *testing.T) {
+func TestIndexOfEqualOrClosestLower(t *testing.T) {
 	for i, f := range [...]struct {
 		s   []int64
 		n   int64

@@ -154,7 +154,7 @@ func TestStandardErrorAlreadyComputed(t *testing.T) {
 	}
 }
 
-func TestSum(t *testing.T) {
+func TestSumSamll(t *testing.T) {
 	for i, f := range [...]struct {
 		input    []float64
 		expected float64
@@ -173,5 +173,53 @@ func TestSum(t *testing.T) {
 		}
 	}
 }
+
+func oneToN(n int) []float64 {
+	s := make([]float64, n)
+	for i := 0; i < n; i++ {
+		s[i] = float64(i + 1)
+	}
+	return s
+}
+
+// this will tests the sum of big slices, using simple finite arithmetic
+// progressions as the input data.
+func TestSumBig(t *testing.T) {
+	for i, n := range [...]int{
+		10,
+		100,
+		1000,
+		10000,
+		100000,
+	} {
+		expected := float64(n*(1+n)) / 2
+		input := oneToN(n)
+		output := sum(input)
+		if !equals(output, expected, tolerance) {
+			t.Errorf("%d) n=%d, expected=%f, output=%f",
+				i, n, expected, output)
+		}
+	}
+}
+
+var benchmarkResult float64 // avoid compiler optimization to elimitate tests
+
+func benchmarkSum(n int, b *testing.B) {
+	b.StopTimer()
+	var r float64
+	input := oneToN(n)
+	b.StartTimer()
+
+	for i := 0; i < b.N; i++ {
+		r = sum(input)
+	}
+	benchmarkResult = r
+}
+
+func BenchmarkSum2(b *testing.B) { benchmarkSum(10, b) }
+func BenchmarkSum3(b *testing.B) { benchmarkSum(100, b) }
+func BenchmarkSum4(b *testing.B) { benchmarkSum(1000, b) }
+func BenchmarkSum5(b *testing.B) { benchmarkSum(10000, b) }
+func BenchmarkSum6(b *testing.B) { benchmarkSum(100000, b) }
 
 // TODO: Add benchmark for sum() before adding a concurrent version

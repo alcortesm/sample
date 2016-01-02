@@ -56,6 +56,34 @@ func sum(s []float64) float64 {
 	return sum
 }
 
+// Split splits a slice s into n sub-slices. The order of the elements
+// in the resulting slices is such that concatenating them, in the same
+// order they are returned, will result in the original slice.
+//
+// The number of elements in each sub-slice is len(s)/n in case n is a
+// factor of len(s). If not, the first len(s)%n sub-slices will have
+// one additional element.
+//
+// If the s is nil, the return value will be n slices of nil.
+func split(s []float64, n int) [][]float64 {
+	r := make([][]float64, n)
+	if n == 0 {
+		return r
+	}
+	quotient := len(s) / n
+	remainder := len(s) % n
+	begin := 0
+	for i := 0; i < n; i++ {
+		end := begin + quotient
+		if i < remainder {
+			end++
+		}
+		r[i] = s[begin:end]
+		begin = end
+	}
+	return r
+}
+
 // Mean computes the sample mean of a population sample or returns its
 // previously computed value.
 func (s *Sample) Mean() float64 {

@@ -84,6 +84,24 @@ func split(s []float64, n int) [][]float64 {
 	return r
 }
 
+func sumConcurrent(s []float64) float64 {
+	n := 4
+	ch := make(chan float64, n)
+	portions := split(s, n)
+	for _, p := range portions {
+		go func(data []float64) {
+			ch <- sum(data)
+		}(p)
+	}
+
+	sum := 0.0
+	for i := 0; i < n; i++ {
+		sum += <-ch
+	}
+
+	return sum
+}
+
 // Mean computes the sample mean of a population sample or returns its
 // previously computed value.
 func (s *Sample) Mean() float64 {

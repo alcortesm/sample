@@ -171,6 +171,11 @@ func TestSumSamll(t *testing.T) {
 			t.Errorf("%d) input=%v, expected=%f, output=%f",
 				i, f.input, f.expected, output)
 		}
+		output = sumConcurrent(f.input)
+		if !equals(output, f.expected, tolerance) {
+			t.Errorf("%d) [concurrent] input=%v, expected=%f, output=%f",
+				i, f.input, f.expected, output)
+		}
 	}
 }
 
@@ -199,28 +204,13 @@ func TestSumBig(t *testing.T) {
 			t.Errorf("%d) n=%d, expected=%f, output=%f",
 				i, n, expected, output)
 		}
+		output = sumConcurrent(input)
+		if !equals(output, expected, tolerance) {
+			t.Errorf("%d) [concurrent] n=%d, expected=%f, output=%f",
+				i, n, expected, output)
+		}
 	}
 }
-
-var benchmarkResult float64 // avoid compiler optimization to elimitate tests
-
-func benchmarkSum(n int, b *testing.B) {
-	b.StopTimer()
-	var r float64
-	input := oneToN(n)
-	b.StartTimer()
-
-	for i := 0; i < b.N; i++ {
-		r = sum(input)
-	}
-	benchmarkResult = r
-}
-
-func BenchmarkSum2(b *testing.B) { benchmarkSum(10, b) }
-func BenchmarkSum3(b *testing.B) { benchmarkSum(100, b) }
-func BenchmarkSum4(b *testing.B) { benchmarkSum(1000, b) }
-func BenchmarkSum5(b *testing.B) { benchmarkSum(10000, b) }
-func BenchmarkSum6(b *testing.B) { benchmarkSum(100000, b) }
 
 func TestSplit(t *testing.T) {
 	for i, tt := range [...]struct {
@@ -456,3 +446,35 @@ func TestSplit(t *testing.T) {
 		}
 	}
 }
+
+var benchmarkResult float64 // avoid compiler optimization to elimitate tests
+
+func benchmarkSum(n int, concurrent bool, b *testing.B) {
+	b.StopTimer()
+	input := oneToN(n)
+	var f func([]float64) float64
+	if concurrent {
+		f = sumConcurrent
+	} else {
+		f = sum
+	}
+	b.StartTimer()
+
+	var r float64
+	for i := 0; i < b.N; i++ {
+		r = f(input)
+	}
+	benchmarkResult = r
+}
+
+func BenchmarkSum4(b *testing.B) { benchmarkSum(1000, false, b) }
+func BenchmarkSum5(b *testing.B) { benchmarkSum(10000, false, b) }
+func BenchmarkSum6(b *testing.B) { benchmarkSum(100000, false, b) }
+func BenchmarkSum7(b *testing.B) { benchmarkSum(1000000, false, b) }
+func BenchmarkSum8(b *testing.B) { benchmarkSum(10000000, false, b) }
+
+func BenchmarkSumConcurrent4(b *testing.B) { benchmarkSum(1000, true, b) }
+func BenchmarkSumConcurrent5(b *testing.B) { benchmarkSum(10000, true, b) }
+func BenchmarkSumConcurrent6(b *testing.B) { benchmarkSum(100000, true, b) }
+func BenchmarkSumConcurrent7(b *testing.B) { benchmarkSum(1000000, true, b) }
+func BenchmarkSumConcurrent8(b *testing.B) { benchmarkSum(10000000, true, b) }

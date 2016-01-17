@@ -74,11 +74,10 @@ func TestMeanAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	first := s.Mean()
-	second := s.Mean()
-	if !equals(first, second, tolerance) {
-		t.Errorf("precomputed mean and new mean differs: sample=%v, first mean=%f, second mean=%f",
-			f, first, second)
+	got := s.Mean()
+	if got != *s.mean {
+		t.Errorf("memoized mean differs from previous result; sample=%v, got=%f, memoized=%f",
+			f, got, *s.mean)
 	}
 }
 
@@ -110,11 +109,10 @@ func TestStandardDeviationAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	first := s.StandardDeviation()
-	second := s.StandardDeviation()
-	if !equals(first, second, tolerance) {
-		t.Errorf("precomputed standard deviation and new one differs: sample=%v, first sd=%f, second sd=%f",
-			f, first, second)
+	got := s.StandardDeviation()
+	if got != *s.sd {
+		t.Errorf("memoized standard deviation differs form previous result: sample=%v, got=%f, memoized=%f",
+			f, got, *s.sd)
 	}
 }
 
@@ -133,7 +131,7 @@ func TestStandardError(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
 		got := s.StandardError()
-		if !equals(got, f.out, tolerance) {
+		if got != *s.se {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
 		}
@@ -146,11 +144,10 @@ func TestStandardErrorAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	first := s.StandardError()
-	second := s.StandardError()
-	if !equals(first, second, tolerance) {
-		t.Errorf("precomputed standard error and new one differs: sample=%v, first sd=%f, second sd=%f",
-			f, first, second)
+	got := s.StandardError()
+	if !equals(got, *s.se, tolerance) {
+		t.Errorf("memoized standard error differs from previous result: sample=%v, got=%f, memoized=%f",
+			f, got, *s.se)
 	}
 }
 

@@ -264,14 +264,14 @@ func TestStudentTwoSidedCriticalValue(t *testing.T) {
 		confidence float64
 		expected   float64
 	}{
-		{degree: 1, confidence: 50.0, expected: 1.000},
-		{degree: 2, confidence: 50.0, expected: 0.816},
-		{degree: math.MaxInt64, confidence: 50.0, expected: 0.674},
-		{degree: 10, confidence: 95.0, expected: 2.228},
-		{degree: 20, confidence: 95.0, expected: 2.086},
-		{degree: math.MaxInt64, confidence: 95.0, expected: 1.960},
-		{degree: 45, confidence: 96.0, expected: 2.423}, // d=40, c=0.98
-		{degree: 4, confidence: 95.0, expected: 2.776},
+		{degree: 1, confidence: 0.50, expected: 1.000},
+		{degree: 2, confidence: 0.50, expected: 0.816},
+		{degree: math.MaxInt64, confidence: 0.50, expected: 0.674},
+		{degree: 10, confidence: 0.95, expected: 2.228},
+		{degree: 20, confidence: 0.95, expected: 2.086},
+		{degree: math.MaxInt64, confidence: 0.95, expected: 1.960},
+		{degree: 45, confidence: 0.96, expected: 2.423}, // d=40, c=0.98
+		{degree: 4, confidence: 0.95, expected: 2.776},
 	} {
 		output, err := studentTwoSidedCriticalValue(f.degree, f.confidence)
 		if err != nil {
@@ -286,7 +286,7 @@ func TestStudentTwoSidedCriticalValue(t *testing.T) {
 }
 
 func TestStudentTwoSidedCriticalValueErrors(t *testing.T) {
-	_, err := studentTwoSidedCriticalValue(10, 110.0)
+	_, err := studentTwoSidedCriticalValue(10, 1.1)
 	expected := "cannot approximate confidence: no bigger data value found"
 	output := fmt.Sprintf("%s", err)
 	if output != expected {
@@ -294,7 +294,7 @@ func TestStudentTwoSidedCriticalValueErrors(t *testing.T) {
 			expected, output)
 	}
 
-	_, err = studentTwoSidedCriticalValue(0, 50.0)
+	_, err = studentTwoSidedCriticalValue(0, 0.50)
 	expected = "cannot approximate degrees of freedom: no lower data value found"
 	output = fmt.Sprintf("%s", err)
 	if output != expected {

@@ -10,15 +10,14 @@ import (
 	"math"
 )
 
-// ErrBesselNeedsTwo is returned whenever the sample length is less than 2
-// sample points, as required by Bessel's correction.
+// ErrBesselNeedsTwo is returned whenever the sample length is less than
+// 2 sample points, as required by Bessel's correction.
 //
-// ErrNotAPercentile is returned when the confidence level for
-// MeanConfidenceIntervals is not in the percentile range.
+// ErrInvalidConfidenceLevel is returned when the confidence level
+// passed to MeanConfidenceIntervals is not in the valid range.
 var (
-	ErrBesselNeedsTwo     = errors.New("Bessel's correction needs at least two sample points")
-	ErrNotAPercentile     = errors.New("number is not a percentile (0<=x<=1)")
-	ErrNotPositiveInteger = errors.New("number is not a positive integer (0<n)")
+	ErrBesselNeedsTwo         = errors.New("Bessel's correction needs at least two sample points")
+	ErrInvalidConfidenceLevel = errors.New("invalid confidence level, 0<confidence<1)")
 )
 
 // Sample zero values are not safe, use the New function to initialize Sample
@@ -156,4 +155,25 @@ func (s *Sample) StandardError() float64 {
 	*s.se = *s.sd / math.Sqrt(float64(len(s.data)))
 
 	return *s.se
+}
+
+// MeanConfidenceIntervals assumes the sample came from a Normal
+// distribution of unknown variance and calculates the confidence
+// intervals of the mean of the distribution for a confidence level of
+// `c`.
+func (s *Sample) MeanConfidenceIntervals(c float64) ([2]float64, error) {
+	if c <= 0.0 || c >= 1.0 {
+		return [2]float64{}, ErrInvalidConfidenceLevel
+	}
+
+	dimension := int64(len(s.data) - 1)
+
+	tinv, err := studentTwoSidedCriticalValue(dimension, c)
+	if err != nil {
+		return [2]float64{}, err
+	}
+
+	margin := tinv * s.StandardError()
+
+	return [2]float64{s.Mean() - margin, s.Mean() + margin}, nil
 }

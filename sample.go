@@ -31,7 +31,7 @@ type Sample struct {
 	se   *float64
 }
 
-// New returns an Sample value initialized with a *copy* of its parameter and a
+// New returns a Sample value initialized with a *copy* of its parameter and a
 // nil error on success. It returns nil and ErrBesselNeedsTwo if the sample
 // length is smaller than 2.
 //

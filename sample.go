@@ -10,14 +10,13 @@ import (
 	"math"
 )
 
-// ErrBesselNeedsTwo is returned whenever the sample length is less than
-// 2 sample points, as required by Bessel's correction.
+// ErrSampleTooSmall is returned when the provided data sample set is too small
+// for a computation.
 //
 // ErrInvalidConfidenceLevel is returned when the confidence level
 // passed to MeanConfidenceIntervals is not in the valid range.
 var (
-	ErrEmptySample            = errors.New("empty sample")
-	ErrBesselNeedsTwo         = errors.New("Bessel's correction needs at least two sample points")
+	ErrSampleTooSmall         = errors.New("too few sample points")
 	ErrInvalidConfidenceLevel = errors.New("invalid confidence level, 0<confidence<1)")
 )
 
@@ -26,7 +25,6 @@ var (
 type Sample struct {
 	data []float64
 	// memoization:
-	sd *float64
 	se *float64
 }
 
@@ -39,7 +37,7 @@ type Sample struct {
 // values.
 func New(data []float64) (*Sample, error) {
 	if len(data) < 2 {
-		return nil, ErrBesselNeedsTwo
+		return nil, ErrSampleTooSmall
 	}
 	sample := new(Sample)
 	sample.data = make([]float64, len(data))
@@ -94,10 +92,13 @@ func sumConcurrent(s []float64) float64 {
 }
 
 // Mean computes the sample mean of a population sample.
+//
+// If the sample size is less than 1, it returns ErrSampleTooSmall
 func Mean(data []float64) (float64, error) {
 	if len(data) < 1 {
-		return 0.0, ErrEmptySample
+		return 0.0, ErrSampleTooSmall
 	}
+
 	return sum(data) / float64(len(data)), nil
 }
 
@@ -106,34 +107,35 @@ func sum(s []float64) float64 {
 	for i := range s {
 		sum += s[i]
 	}
+
 	return sum
 }
 
 // StandardDeviation computes the sample-based unbiased estimation of the
-// standard deviation of a population or returns its previously computed value.
+// standard deviation of a population.
 //
 // This implementation uses the Bessel's correction and is downward biassed as
 // per Jensen's inequality.
 //
 // It is calculated as sqrt(1/(N-1) sum_i_N(x_i-mean(x))).
-func (s *Sample) StandardDeviationObj() float64 {
-	if s.sd != nil {
-		return *s.sd
+//
+// If the sample size is less than 2, it returns ErrSampleTooSmall
+func StandardDeviation(data []float64) (float64, error) {
+	if len(data) < 2 {
+		return 0.0, ErrSampleTooSmall
 	}
-	s.sd = new(float64)
 
-	m, _ := Mean(s.data)
+	mean, _ := Mean(data)
 
 	// TODO: this sum can be done concurrently
 	sum := 0.0
 	var diff float64
-	for _, sp := range s.data {
-		diff = sp - m
+	for _, samplePoint := range data {
+		diff = samplePoint - mean
 		sum += diff * diff
 	}
-	*s.sd = math.Sqrt(sum / float64(len(s.data)-1))
 
-	return *s.sd
+	return math.Sqrt(sum / float64(len(data)-1)), nil
 }
 
 // StandardError returns the standard deviation of the sampling
@@ -145,9 +147,9 @@ func (s *Sample) StandardErrorObj() float64 {
 	}
 	s.se = new(float64)
 
-	s.StandardDeviationObj()
+	sd, _ := StandardDeviation(s.data)
 
-	*s.se = *s.sd / math.Sqrt(float64(len(s.data)))
+	*s.se = sd / math.Sqrt(float64(len(s.data)))
 
 	return *s.se
 }

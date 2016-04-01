@@ -34,7 +34,7 @@ func TestNewErrors(t *testing.T) {
 		if s != nil {
 			t.Fatalf("%d) in=%v, should have returned nil, but got: %v", i, f, s)
 		}
-		if err != ErrBesselNeedsTwo {
+		if err != ErrSampleTooSmall {
 			t.Fatalf("%d) in=%v, should have returned ErrBesselNeedsTwo", i, f)
 		}
 	}
@@ -62,8 +62,8 @@ func TestMean(t *testing.T) {
 		expectedError  error
 		expectedResult float64
 	}{
-		{input: nil, expectedError: ErrEmptySample},
-		{input: []float64{}, expectedError: ErrEmptySample},
+		{input: nil, expectedError: ErrSampleTooSmall},
+		{input: []float64{}, expectedError: ErrSampleTooSmall},
 		{input: []float64{12.}, expectedResult: 12.},
 		{input: []float64{0.}, expectedResult: 0.},
 		{input: []float64{-12.}, expectedResult: -12.},
@@ -86,38 +86,28 @@ func TestMean(t *testing.T) {
 	}
 }
 
-func TestStandardDeviationObj(t *testing.T) {
-	for i, f := range [...]struct {
-		in  []float64
-		out float64
+func TestStandardDeviation(t *testing.T) {
+	for testNumber, testData := range [...]struct {
+		input          []float64
+		expectedError  error
+		expectedResult float64
 	}{
-		{in: []float64{1.0, 1.0}, out: 0.0},
-		{in: []float64{1.0, 2.0}, out: 0.707},
-		{in: []float64{1.0, 2, 3, 4, 5, 6}, out: 1.870},
-		{in: []float64{-2.0, -1, 0, 1, 2, 3}, out: 1.870},
+		{input: nil, expectedError: ErrSampleTooSmall},
+		{input: []float64{}, expectedError: ErrSampleTooSmall},
+		{input: []float64{1.0, 1.0}, expectedResult: 0.0},
+		{input: []float64{1.0, 2.0}, expectedResult: 0.707},
+		{input: []float64{1.0, 2, 3, 4, 5, 6}, expectedResult: 1.870},
+		{input: []float64{-2.0, -1, 0, 1, 2, 3}, expectedResult: 1.870},
 	} {
-		s, err := New(f.in)
-		if err != nil {
-			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
-		}
-		got := s.StandardDeviationObj()
-		if !equals(got, f.out, tolerance) {
-			t.Errorf("%d) in=%v, out=%f, got=%f",
-				i, f.in, f.out, got)
-		}
-	}
-}
+		result, err := StandardDeviation(testData.input)
 
-func TestStandardDeviationAlreadyComputed(t *testing.T) {
-	f := []float64{1.0, 1}
-	s, err := New(f)
-	if err != nil {
-		t.Fatalf("in=%v, New returned error: %v", f, err)
-	}
-	got := s.StandardDeviationObj()
-	if got != *s.sd {
-		t.Errorf("memoized standard deviation differs form previous result: sample=%v, got=%f, memoized=%f",
-			f, got, *s.sd)
+		if err != testData.expectedError {
+			t.Errorf("%d) Wrong error value: input=%v, expected error=%v, obtained error=%v", testNumber, testData.input, testData.expectedError, err)
+		}
+
+		if !equals(result, testData.expectedResult, tolerance) {
+			t.Errorf("%d) Wrong result value: input=%v, expected result=%f, obtained result=%f", testNumber, testData.input, testData.expectedResult, result)
+		}
 	}
 }
 

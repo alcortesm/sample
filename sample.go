@@ -16,6 +16,7 @@ import (
 // ErrInvalidConfidenceLevel is returned when the confidence level
 // passed to MeanConfidenceIntervals is not in the valid range.
 var (
+	ErrEmptySample            = errors.New("empty sample")
 	ErrBesselNeedsTwo         = errors.New("Bessel's correction needs at least two sample points")
 	ErrInvalidConfidenceLevel = errors.New("invalid confidence level, 0<confidence<1)")
 )
@@ -25,9 +26,8 @@ var (
 type Sample struct {
 	data []float64
 	// memoization:
-	mean *float64
-	sd   *float64
-	se   *float64
+	sd *float64
+	se *float64
 }
 
 // New returns a Sample value initialized with a *copy* of its parameter and a
@@ -45,14 +45,6 @@ func New(data []float64) (*Sample, error) {
 	sample.data = make([]float64, len(data))
 	copy(sample.data, data)
 	return sample, nil
-}
-
-func sum(s []float64) float64 {
-	sum := 0.0
-	for i := range s {
-		sum += s[i]
-	}
-	return sum
 }
 
 // Split splits a slice s into n sub-slices. The order of the elements
@@ -101,17 +93,20 @@ func sumConcurrent(s []float64) float64 {
 	return sum
 }
 
-// Mean computes the sample mean of a population sample or returns its
-// previously computed value.
-func (s *Sample) MeanObj() float64 {
-	if s.mean != nil {
-		return *s.mean
+// Mean computes the sample mean of a population sample.
+func Mean(data []float64) (float64, error) {
+	if len(data) < 1 {
+		return 0.0, ErrEmptySample
 	}
-	s.mean = new(float64)
+	return sum(data) / float64(len(data)), nil
+}
 
-	*s.mean = sum(s.data) / float64(len(s.data))
-
-	return *s.mean
+func sum(s []float64) float64 {
+	sum := 0.0
+	for i := range s {
+		sum += s[i]
+	}
+	return sum
 }
 
 // StandardDeviation computes the sample-based unbiased estimation of the
@@ -127,13 +122,13 @@ func (s *Sample) StandardDeviationObj() float64 {
 	}
 	s.sd = new(float64)
 
-	s.MeanObj()
+	m, _ := Mean(s.data)
 
 	// TODO: this sum can be done concurrently
 	sum := 0.0
 	var diff float64
 	for _, sp := range s.data {
-		diff = sp - *s.mean
+		diff = sp - m
 		sum += diff * diff
 	}
 	*s.sd = math.Sqrt(sum / float64(len(s.data)-1))
@@ -175,5 +170,7 @@ func (s *Sample) MeanConfidenceIntervalsObj(c float64) ([2]float64, error) {
 
 	margin := tinv * s.StandardErrorObj()
 
-	return [2]float64{s.MeanObj() - margin, s.MeanObj() + margin}, nil
+	m, _ := Mean(s.data)
+
+	return [2]float64{m - margin, m + margin}, nil
 }

@@ -56,38 +56,33 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestMeanObj(t *testing.T) {
-	for i, f := range [...]struct {
-		in  []float64
-		out float64
+func TestMean(t *testing.T) {
+	for testNumber, testData := range [...]struct {
+		input          []float64
+		expectedError  error
+		expectedResult float64
 	}{
-		{in: []float64{-1.0, -1.0}, out: -1.0},
-		{in: []float64{1, 2, 3, 4, 5, 6}, out: 3.5},
-		{in: []float64{0, 1, -1, 2, -2}, out: 0.0},
-		{in: []float64{3.005, 3.005, 3.005, 3.005, 3.005, 3.005002, 3.004998}, out: 3.005},
+		{input: nil, expectedError: ErrEmptySample},
+		{input: []float64{}, expectedError: ErrEmptySample},
+		{input: []float64{12.}, expectedResult: 12.},
+		{input: []float64{0.}, expectedResult: 0.},
+		{input: []float64{-12.}, expectedResult: -12.},
+		{input: []float64{-1., -1.}, expectedResult: -1.},
+		{input: []float64{-1., 1.}, expectedResult: 0.},
+		{input: []float64{1., 1.}, expectedResult: 1.},
+		{input: []float64{1., 2., 3., 4., 5., 6.}, expectedResult: 3.5},
+		{input: []float64{0., 1., -1., 2., -2.}, expectedResult: 0.0},
+		{input: []float64{3.005, 3.005, 3.005, 3.005, 3.005, 3.005002, 3.004998}, expectedResult: 3.005},
 	} {
-		s, err := New(f.in)
-		if err != nil {
-			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
+		result, err := Mean(testData.input)
+		if err != testData.expectedError {
+			t.Errorf("%d) Wrong error value: input=%v, expected error=%v, obtained error=%v",
+				testNumber, testData.input, testData.expectedError, err)
 		}
-		got := s.MeanObj()
-		if !equals(got, f.out, tolerance) {
-			t.Errorf("%d) in=%v, out=%f, got=%f",
-				i, f.in, f.out, got)
+		if !equals(result, testData.expectedResult, tolerance) {
+			t.Errorf("%d) Wrong result: in=%v, out=%f, got=%f",
+				testNumber, testData.input, testData.expectedResult, result)
 		}
-	}
-}
-
-func TestMeanAlreadyComputed(t *testing.T) {
-	f := []float64{1.0, 1}
-	s, err := New(f)
-	if err != nil {
-		t.Fatalf("in=%v, New returned error: %v", f, err)
-	}
-	got := s.MeanObj()
-	if got != *s.mean {
-		t.Errorf("memoized mean differs from previous result; sample=%v, got=%f, memoized=%f",
-			f, got, *s.mean)
 	}
 }
 

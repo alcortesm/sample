@@ -103,7 +103,7 @@ func sumConcurrent(s []float64) float64 {
 
 // Mean computes the sample mean of a population sample or returns its
 // previously computed value.
-func (s *Sample) Mean() float64 {
+func (s *Sample) MeanObj() float64 {
 	if s.mean != nil {
 		return *s.mean
 	}
@@ -121,13 +121,13 @@ func (s *Sample) Mean() float64 {
 // per Jensen's inequality.
 //
 // It is calculated as sqrt(1/(N-1) sum_i_N(x_i-mean(x))).
-func (s *Sample) StandardDeviation() float64 {
+func (s *Sample) StandardDeviationObj() float64 {
 	if s.sd != nil {
 		return *s.sd
 	}
 	s.sd = new(float64)
 
-	s.Mean()
+	s.MeanObj()
 
 	// TODO: this sum can be done concurrently
 	sum := 0.0
@@ -144,13 +144,13 @@ func (s *Sample) StandardDeviation() float64 {
 // StandardError returns the standard deviation of the sampling
 // distribution of the mean, also known as the "Standard Error of the
 // Mean".
-func (s *Sample) StandardError() float64 {
+func (s *Sample) StandardErrorObj() float64 {
 	if s.se != nil {
 		return *s.se
 	}
 	s.se = new(float64)
 
-	s.StandardDeviation()
+	s.StandardDeviationObj()
 
 	*s.se = *s.sd / math.Sqrt(float64(len(s.data)))
 
@@ -161,7 +161,7 @@ func (s *Sample) StandardError() float64 {
 // distribution of unknown variance and calculates the confidence
 // intervals of the mean of the distribution for a confidence level of
 // `c`.
-func (s *Sample) MeanConfidenceIntervals(c float64) ([2]float64, error) {
+func (s *Sample) MeanConfidenceIntervalsObj(c float64) ([2]float64, error) {
 	if c <= 0.0 || c >= 1.0 {
 		return [2]float64{}, ErrInvalidConfidenceLevel
 	}
@@ -173,7 +173,7 @@ func (s *Sample) MeanConfidenceIntervals(c float64) ([2]float64, error) {
 		return [2]float64{}, err
 	}
 
-	margin := tinv * s.StandardError()
+	margin := tinv * s.StandardErrorObj()
 
-	return [2]float64{s.Mean() - margin, s.Mean() + margin}, nil
+	return [2]float64{s.MeanObj() - margin, s.MeanObj() + margin}, nil
 }

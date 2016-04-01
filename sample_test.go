@@ -56,7 +56,7 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestMean(t *testing.T) {
+func TestMeanObj(t *testing.T) {
 	for i, f := range [...]struct {
 		in  []float64
 		out float64
@@ -70,7 +70,7 @@ func TestMean(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
-		got := s.Mean()
+		got := s.MeanObj()
 		if !equals(got, f.out, tolerance) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
@@ -84,14 +84,14 @@ func TestMeanAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	got := s.Mean()
+	got := s.MeanObj()
 	if got != *s.mean {
 		t.Errorf("memoized mean differs from previous result; sample=%v, got=%f, memoized=%f",
 			f, got, *s.mean)
 	}
 }
 
-func TestStandardDeviation(t *testing.T) {
+func TestStandardDeviationObj(t *testing.T) {
 	for i, f := range [...]struct {
 		in  []float64
 		out float64
@@ -105,7 +105,7 @@ func TestStandardDeviation(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
-		got := s.StandardDeviation()
+		got := s.StandardDeviationObj()
 		if !equals(got, f.out, tolerance) {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
@@ -119,14 +119,14 @@ func TestStandardDeviationAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	got := s.StandardDeviation()
+	got := s.StandardDeviationObj()
 	if got != *s.sd {
 		t.Errorf("memoized standard deviation differs form previous result: sample=%v, got=%f, memoized=%f",
 			f, got, *s.sd)
 	}
 }
 
-func TestStandardError(t *testing.T) {
+func TestStandardErrorObj(t *testing.T) {
 	for i, f := range [...]struct {
 		in  []float64
 		out float64
@@ -140,7 +140,7 @@ func TestStandardError(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, f.in, err)
 		}
-		got := s.StandardError()
+		got := s.StandardErrorObj()
 		if got != *s.se {
 			t.Errorf("%d) in=%v, out=%f, got=%f",
 				i, f.in, f.out, got)
@@ -154,7 +154,7 @@ func TestStandardErrorAlreadyComputed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("in=%v, New returned error: %v", f, err)
 	}
-	got := s.StandardError()
+	got := s.StandardErrorObj()
 	if !equals(got, *s.se, tolerance) {
 		t.Errorf("memoized standard error differs from previous result: sample=%v, got=%f, memoized=%f",
 			f, got, *s.se)
@@ -486,7 +486,7 @@ func BenchmarkSumConcurrent6(b *testing.B) { benchmarkSum(100000, true, b) }
 func BenchmarkSumConcurrent7(b *testing.B) { benchmarkSum(1000000, true, b) }
 func BenchmarkSumConcurrent8(b *testing.B) { benchmarkSum(10000000, true, b) }
 
-func TestMeanConfidenceIntervals(t *testing.T) {
+func TestMeanConfidenceIntervalsObj(t *testing.T) {
 	for i, tt := range [...]struct {
 		inData       []float64
 		inConfidence float64
@@ -524,7 +524,7 @@ func TestMeanConfidenceIntervals(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, tt.inData, err)
 		}
 
-		obtained, err := s.MeanConfidenceIntervals(tt.inConfidence)
+		obtained, err := s.MeanConfidenceIntervalsObj(tt.inConfidence)
 		if err != nil {
 			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%v, obtained error=%q",
 				i, tt.inData, tt.inConfidence, tt.expected, err)
@@ -537,7 +537,7 @@ func TestMeanConfidenceIntervals(t *testing.T) {
 	}
 }
 
-func TestMeanConfidenceIntervalsErrors(t *testing.T) {
+func TestMeanConfidenceIntervalsObjErrors(t *testing.T) {
 	for i, tt := range [...]struct {
 		inData       []float64
 		inConfidence float64
@@ -557,7 +557,7 @@ func TestMeanConfidenceIntervalsErrors(t *testing.T) {
 			t.Fatalf("%d) in=%v, New returned error: %v", i, tt.inData, err)
 		}
 
-		_, err = s.MeanConfidenceIntervals(tt.inConfidence)
+		_, err = s.MeanConfidenceIntervalsObj(tt.inConfidence)
 		if err == nil {
 			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%q, obtained no error",
 				i, tt.inData, tt.inConfidence, tt.expected)

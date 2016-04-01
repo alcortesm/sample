@@ -24,8 +24,6 @@ var (
 // types.
 type Sample struct {
 	data []float64
-	// memoization:
-	se *float64
 }
 
 // New returns a Sample value initialized with a *copy* of its parameter and a
@@ -141,17 +139,13 @@ func StandardDeviation(data []float64) (float64, error) {
 // StandardError returns the standard deviation of the sampling
 // distribution of the mean, also known as the "Standard Error of the
 // Mean".
-func (s *Sample) StandardErrorObj() float64 {
-	if s.se != nil {
-		return *s.se
+func StandardError(data []float64) (float64, error) {
+	sd, err := StandardDeviation(data)
+	if err != nil {
+		return 0.0, err
 	}
-	s.se = new(float64)
 
-	sd, _ := StandardDeviation(s.data)
-
-	*s.se = sd / math.Sqrt(float64(len(s.data)))
-
-	return *s.se
+	return sd / math.Sqrt(float64(len(data))), nil
 }
 
 // MeanConfidenceIntervals assumes the sample came from a Normal
@@ -170,7 +164,8 @@ func (s *Sample) MeanConfidenceIntervalsObj(c float64) ([2]float64, error) {
 		return [2]float64{}, err
 	}
 
-	margin := tinv * s.StandardErrorObj()
+	se, _ := StandardError(s.data)
+	margin := tinv * se
 
 	m, _ := Mean(s.data)
 

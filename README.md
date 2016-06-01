@@ -5,7 +5,7 @@
 # Sample
 
 Sample is a Go package to calculate useful values from samples of statistical
-populations, like:
+populations, including:
 
 - the sample mean
 
@@ -77,5 +77,5 @@ func main() {
 ## License
 
 This project is licensed under the GPLv2 License - see the
-[LICENSE.md](LICENSE.md) file for details
+[LICENSE](LICENSE) file for details
 

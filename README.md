@@ -72,10 +72,10 @@ func main() {
 
 ## Author
 
-- Alberto Cortés <alcortesm@gmail.com>
+- Alberto Cortés <alcortesm@gmail.com>.
 
 ## License
 
 This project is licensed under the GPLv2 License - see the
-[LICENSE](LICENSE) file for details
+[LICENSE](LICENSE) file for details.
 

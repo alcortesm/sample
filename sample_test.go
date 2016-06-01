@@ -2,7 +2,6 @@ package sample
 
 import (
 	"math"
-	"reflect"
 	"testing"
 )
 
@@ -23,37 +22,6 @@ func pairEquals(a, b [2]float64, tolerance float64) bool {
 	}
 
 	return true
-}
-
-func TestNewErrors(t *testing.T) {
-	for i, f := range [...][]float64{
-		{},
-		{1.0},
-	} {
-		s, err := New(f)
-		if s != nil {
-			t.Fatalf("%d) in=%v, should have returned nil, but got: %v", i, f, s)
-		}
-		if err != ErrSampleTooSmall {
-			t.Fatalf("%d) in=%v, should have returned ErrBesselNeedsTwo", i, f)
-		}
-	}
-}
-
-func TestNew(t *testing.T) {
-	for i, f := range [...][]float64{
-		{1.0, 1},
-		{1.0, 2, -3.1415952},
-		{1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-	} {
-		s, err := New(f)
-		if err != nil {
-			t.Fatalf("%d) in=%v, returned error: %v", i, f, err)
-		}
-		if !reflect.DeepEqual(f, s.data) {
-			t.Errorf("%d) in=%v, expected=%[2]v, got=%v", i, f, s.data)
-		}
-	}
 }
 
 func TestMean(t *testing.T) {
@@ -153,11 +121,6 @@ func TestSumSamll(t *testing.T) {
 			t.Errorf("%d) input=%v, expected=%f, output=%f",
 				i, f.input, f.expected, output)
 		}
-		output = sumConcurrent(f.input)
-		if !equals(output, f.expected, tolerance) {
-			t.Errorf("%d) [concurrent] input=%v, expected=%f, output=%f",
-				i, f.input, f.expected, output)
-		}
 	}
 }
 
@@ -186,246 +149,6 @@ func TestSumBig(t *testing.T) {
 			t.Errorf("%d) n=%d, expected=%f, output=%f",
 				i, n, expected, output)
 		}
-		output = sumConcurrent(input)
-		if !equals(output, expected, tolerance) {
-			t.Errorf("%d) [concurrent] n=%d, expected=%f, output=%f",
-				i, n, expected, output)
-		}
-	}
-}
-
-func TestSplit(t *testing.T) {
-	for i, tt := range [...]struct {
-		s        []float64
-		n        int
-		expected [][]float64
-	}{
-		{nil, 0, [][]float64{}},
-		{[]float64{}, 0, [][]float64{}},
-		{[]float64{1}, 0, [][]float64{}},
-		{[]float64{1, 2}, 0, [][]float64{}},
-		{[]float64{1, 2, 3}, 0, [][]float64{}},
-		{[]float64{1, 2, 3, 4}, 0, [][]float64{}},
-		{nil, 1, [][]float64{nil}}, // 6
-		{[]float64{}, 1, [][]float64{{}}},
-		{[]float64{1}, 1, [][]float64{{1}}},
-		{[]float64{1, 2}, 1, [][]float64{{1, 2}}},
-		{[]float64{1, 2, 3}, 1, [][]float64{{1, 2, 3}}},
-		{[]float64{1, 2, 3, 4}, 1, [][]float64{{1, 2, 3, 4}}},
-		{nil, 2, [][]float64{nil, nil}}, // 12
-		{[]float64{},
-			2, [][]float64{
-				{},
-				{}}},
-		{[]float64{1},
-			2, [][]float64{
-				{1},
-				{}}},
-		{[]float64{1, 2},
-			2, [][]float64{
-				{1},
-				{2}}},
-		{[]float64{1, 2, 3},
-			2, [][]float64{
-				{1, 2},
-				{3}}},
-		{[]float64{1, 2, 3, 4},
-			2, [][]float64{
-				{1, 2},
-				{3, 4}}},
-		{[]float64{1, 2, 3, 4, 5},
-			2, [][]float64{
-				{1, 2, 3},
-				{4, 5}}},
-		{[]float64{1, 2, 3, 4, 5, 6},
-			2, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7},
-			2, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8},
-			2, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7, 8}}},
-		{nil, 3, [][]float64{nil, nil, nil}},
-		{[]float64{},
-			3, [][]float64{
-				{},
-				{},
-				{}}},
-		{[]float64{1},
-			3, [][]float64{
-				{1},
-				{},
-				{}}},
-		{[]float64{1, 2},
-			3, [][]float64{
-				{1},
-				{2},
-				{}}},
-		{[]float64{1, 2, 3},
-			3, [][]float64{
-				{1},
-				{2},
-				{3}}},
-		{[]float64{1, 2, 3, 4},
-			3, [][]float64{
-				{1, 2},
-				{3},
-				{4}}},
-		{[]float64{1, 2, 3, 4, 5},
-			3, [][]float64{
-				{1, 2},
-				{3, 4},
-				{5}}},
-		{[]float64{1, 2, 3, 4, 5, 6},
-			3, [][]float64{
-				{1, 2},
-				{3, 4},
-				{5, 6}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7},
-			3, [][]float64{
-				{1, 2, 3},
-				{4, 5},
-				{6, 7}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8},
-			3, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6},
-				{7, 8}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9},
-			3, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6},
-				{7, 8, 9}}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-			3, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7},
-				{8, 9, 10}}},
-		{nil, 4, [][]float64{nil, nil, nil, nil}},
-		{[]float64{},
-			4, [][]float64{
-				{},
-				{},
-				{},
-				{}}},
-		{[]float64{1},
-			4, [][]float64{
-				{1},
-				{},
-				{},
-				{}}},
-		{[]float64{1, 2},
-			4, [][]float64{
-				{1},
-				{2},
-				{},
-				{}}},
-		{[]float64{1, 2, 3},
-			4, [][]float64{
-				{1},
-				{2},
-				{3},
-				{}}},
-		{[]float64{1, 2, 3, 4},
-			4, [][]float64{
-				{1},
-				{2},
-				{3},
-				{4}}},
-		{[]float64{1, 2, 3, 4, 5},
-			4, [][]float64{
-				{1, 2},
-				{3},
-				{4},
-				{5},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6},
-			4, [][]float64{
-				{1, 2},
-				{3, 4},
-				{5},
-				{6},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7},
-			4, [][]float64{
-				{1, 2},
-				{3, 4},
-				{5, 6},
-				{7},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8},
-			4, [][]float64{
-				{1, 2},
-				{3, 4},
-				{5, 6},
-				{7, 8},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9},
-			4, [][]float64{
-				{1, 2, 3},
-				{4, 5},
-				{6, 7},
-				{8, 9},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-			4, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6},
-				{7, 8},
-				{9, 10},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
-			4, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6},
-				{7, 8, 9},
-				{10, 11},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-			4, [][]float64{
-				{1, 2, 3},
-				{4, 5, 6},
-				{7, 8, 9},
-				{10, 11, 12},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13},
-			4, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7},
-				{8, 9, 10},
-				{11, 12, 13},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
-			4, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7, 8},
-				{9, 10, 11},
-				{12, 13, 14},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
-			4, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7, 8},
-				{9, 10, 11, 12},
-				{13, 14, 15},
-			}},
-		{[]float64{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
-			4, [][]float64{
-				{1, 2, 3, 4},
-				{5, 6, 7, 8},
-				{9, 10, 11, 12},
-				{13, 14, 15, 16},
-			}},
-	} {
-		output := split(tt.s, tt.n)
-		if !reflect.DeepEqual(output, tt.expected) {
-			t.Errorf("%d) s=%v, n=%d\nexpect=%v\noutput=%v",
-				i, tt.s, tt.n, tt.expected, output)
-		}
 	}
 }
 
@@ -434,17 +157,11 @@ var benchmarkResult float64 // avoid compiler optimization to elimitate tests
 func benchmarkSum(n int, concurrent bool, b *testing.B) {
 	b.StopTimer()
 	input := oneToN(n)
-	var f func([]float64) float64
-	if concurrent {
-		f = sumConcurrent
-	} else {
-		f = sum
-	}
 	b.StartTimer()
 
 	var r float64
 	for i := 0; i < b.N; i++ {
-		r = f(input)
+		r = sum(input)
 	}
 	benchmarkResult = r
 }
@@ -461,7 +178,7 @@ func BenchmarkSumConcurrent6(b *testing.B) { benchmarkSum(100000, true, b) }
 func BenchmarkSumConcurrent7(b *testing.B) { benchmarkSum(1000000, true, b) }
 func BenchmarkSumConcurrent8(b *testing.B) { benchmarkSum(10000000, true, b) }
 
-func TestMeanConfidenceIntervalsObj(t *testing.T) {
+func TestMeanConfidenceIntervalsErrors(t *testing.T) {
 	for i, tt := range [...]struct {
 		inData       []float64
 		inConfidence float64
@@ -494,12 +211,7 @@ func TestMeanConfidenceIntervalsObj(t *testing.T) {
 		{inData: []float64{-1.164837, -0.603101, -1.122721, -0.716435, 0.049454, 0.097798, 0.396846, -1.558289, -0.231544, -0.171306},
 			inConfidence: 0.99, expected: [2]float64{-1.15696, 0.15213}},
 	} {
-		s, err := New(tt.inData)
-		if err != nil {
-			t.Fatalf("%d) in=%v, New returned error: %v", i, tt.inData, err)
-		}
-
-		obtained, err := s.MeanConfidenceIntervalsObj(tt.inConfidence)
+		obtained, err := MeanConfidenceIntervals(tt.inData, tt.inConfidence)
 		if err != nil {
 			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%v, obtained error=%q",
 				i, tt.inData, tt.inConfidence, tt.expected, err)
@@ -518,22 +230,19 @@ func TestMeanConfidenceIntervalsObjErrors(t *testing.T) {
 		inConfidence float64
 		expected     error
 	}{
+		{inData: []float64{1.0},
+			inConfidence: 0.99, expected: ErrSampleTooSmall},
 		{inData: []float64{1.0, 3.0},
-			inConfidence: 0.0, expected: ErrInvalidConfidenceLevel},
+			inConfidence: 0.0, expected: ErrInvalidConfidence},
 		{inData: []float64{1.0, 3.0},
-			inConfidence: 1.0, expected: ErrInvalidConfidenceLevel},
+			inConfidence: 1.0, expected: ErrInvalidConfidence},
 		{inData: []float64{1.0, 3.0},
-			inConfidence: -1.0, expected: ErrInvalidConfidenceLevel},
+			inConfidence: -1.0, expected: ErrInvalidConfidence},
 		{inData: []float64{1.0, 3.0},
-			inConfidence: 2.0, expected: ErrInvalidConfidenceLevel},
+			inConfidence: 2.0, expected: ErrInvalidConfidence},
 	} {
-		s, err := New(tt.inData)
-		if err != nil {
-			t.Fatalf("%d) in=%v, New returned error: %v", i, tt.inData, err)
-		}
-
-		_, err = s.MeanConfidenceIntervalsObj(tt.inConfidence)
-		if err == nil {
+		_, err := MeanConfidenceIntervals(tt.inData, tt.inConfidence)
+		if err != tt.expected {
 			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%q, obtained no error",
 				i, tt.inData, tt.inConfidence, tt.expected)
 		}
@@ -541,6 +250,52 @@ func TestMeanConfidenceIntervalsObjErrors(t *testing.T) {
 		if err != tt.expected {
 			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%q, obtained=%q",
 				i, tt.inData, tt.inConfidence, tt.expected, err)
+		}
+	}
+}
+
+func TestMeanConfidenceIntervals(t *testing.T) {
+	for i, tt := range [...]struct {
+		inData       []float64
+		inConfidence float64
+		expected     [2]float64
+	}{
+		{inData: []float64{1.0, 3.0},
+			inConfidence: 0.5, expected: [2]float64{1.0, 3.0}},
+		{inData: []float64{1.0, 3.0},
+			inConfidence: 0.90, expected: [2]float64{-4.3138, 8.3138}},
+		{inData: []float64{1.0, 3.0},
+			inConfidence: 0.95, expected: [2]float64{-10.71, 14.71}},
+		{inData: []float64{1.0, 3.0},
+			inConfidence: 0.99, expected: [2]float64{-61.66, 65.66}},
+
+		{inData: []float64{2.0, 3, 5, 6, 9},
+			inConfidence: 0.50, expected: [2]float64{4.0928, 5.9072}},
+		{inData: []float64{2.0, 3, 5, 6, 9},
+			inConfidence: 0.90, expected: [2]float64{2.3890, 7.6110}},
+		{inData: []float64{2.0, 3, 5, 6, 9},
+			inConfidence: 0.95, expected: [2]float64{1.5996, 8.4004}},
+		{inData: []float64{2.0, 3, 5, 6, 9},
+			inConfidence: 0.99, expected: [2]float64{-0.63884, 10.63884}},
+
+		{inData: []float64{-1.164837, -0.603101, -1.122721, -0.716435, 0.049454, 0.097798, 0.396846, -1.558289, -0.231544, -0.171306},
+			inConfidence: 0.50, expected: [2]float64{-0.64395, -0.36088}},
+		{inData: []float64{-1.164837, -0.603101, -1.122721, -0.716435, 0.049454, 0.097798, 0.396846, -1.558289, -0.231544, -0.171306},
+			inConfidence: 0.90, expected: [2]float64{-0.87162, -0.13321}},
+		{inData: []float64{-1.164837, -0.603101, -1.122721, -0.716435, 0.049454, 0.097798, 0.396846, -1.558289, -0.231544, -0.171306},
+			inConfidence: 0.95, expected: [2]float64{-0.958031, -0.046796}},
+		{inData: []float64{-1.164837, -0.603101, -1.122721, -0.716435, 0.049454, 0.097798, 0.396846, -1.558289, -0.231544, -0.171306},
+			inConfidence: 0.99, expected: [2]float64{-1.15696, 0.15213}},
+	} {
+		obtained, err := MeanConfidenceIntervals(tt.inData, tt.inConfidence)
+		if err != nil {
+			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%v, obtained error=%q",
+				i, tt.inData, tt.inConfidence, tt.expected, err)
+		}
+
+		if !pairEquals(obtained, tt.expected, tolerance) {
+			t.Errorf("%d) inData=%v, inConfidence=%f, expected=%v, obtained=%v",
+				i, tt.inData, tt.inConfidence, tt.expected, obtained)
 		}
 	}
 }

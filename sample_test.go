@@ -8,10 +8,7 @@ import (
 const tolerance = 1e-3
 
 func equals(a, b, tolerance float64) bool {
-	if math.Abs(a-b) < tolerance {
-		return true
-	}
-	return false
+	return math.Abs(a-b) < tolerance
 }
 
 func pairEquals(a, b [2]float64, tolerance float64) bool {
@@ -25,7 +22,7 @@ func pairEquals(a, b [2]float64, tolerance float64) bool {
 }
 
 func TestMean(t *testing.T) {
-	for testNumber, testData := range [...]struct {
+	for testNumber, testData := range []struct {
 		input          []float64
 		expectedError  error
 		expectedResult float64
@@ -55,7 +52,7 @@ func TestMean(t *testing.T) {
 }
 
 func TestStandardDeviation(t *testing.T) {
-	for testNumber, testData := range [...]struct {
+	for testNumber, testData := range []struct {
 		input          []float64
 		expectedError  error
 		expectedResult float64
@@ -80,7 +77,7 @@ func TestStandardDeviation(t *testing.T) {
 }
 
 func TestStandardError(t *testing.T) {
-	for testNumber, testData := range [...]struct {
+	for testNumber, testData := range []struct {
 		input          []float64
 		expectedError  error
 		expectedResult float64
@@ -105,7 +102,7 @@ func TestStandardError(t *testing.T) {
 }
 
 func TestSumSamll(t *testing.T) {
-	for i, f := range [...]struct {
+	for i, f := range []struct {
 		input    []float64
 		expected float64
 	}{
@@ -135,7 +132,7 @@ func oneToN(n int) []float64 {
 // this will tests the sum of big slices, using simple finite arithmetic
 // progressions as the input data.
 func TestSumBig(t *testing.T) {
-	for i, n := range [...]int{
+	for i, n := range []int{
 		10,
 		100,
 		1000,
@@ -179,7 +176,7 @@ func BenchmarkSumConcurrent7(b *testing.B) { benchmarkSum(1000000, true, b) }
 func BenchmarkSumConcurrent8(b *testing.B) { benchmarkSum(10000000, true, b) }
 
 func TestMeanConfidenceIntervalsErrors(t *testing.T) {
-	for i, tt := range [...]struct {
+	for i, tt := range []struct {
 		inData       []float64
 		inConfidence float64
 		expected     [2]float64
@@ -225,7 +222,7 @@ func TestMeanConfidenceIntervalsErrors(t *testing.T) {
 }
 
 func TestMeanConfidenceIntervalsObjErrors(t *testing.T) {
-	for i, tt := range [...]struct {
+	for i, tt := range []struct {
 		inData       []float64
 		inConfidence float64
 		expected     error
@@ -255,7 +252,7 @@ func TestMeanConfidenceIntervalsObjErrors(t *testing.T) {
 }
 
 func TestMeanConfidenceIntervals(t *testing.T) {
-	for i, tt := range [...]struct {
+	for i, tt := range []struct {
 		inData       []float64
 		inConfidence float64
 		expected     [2]float64

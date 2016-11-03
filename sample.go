@@ -108,11 +108,7 @@ func MeanConfidenceIntervals(data []float64, confidence float64) ([2]float64,
 	}
 	margin := tinv * se
 
-	mean, err := Mean(data)
-	if err != nil {
-		return [2]float64{}, err
-	}
-
+	mean, _ := Mean(data)
 	return [2]float64{mean - margin, mean + margin}, nil
 }
 

@@ -3,7 +3,7 @@ Package sample implements some useful functions to process samples from
 statistical populations. The standard Go `float64` type is used in all
 computations.
 */
-package sample
+package sample // import "github.com/alcortesm/sample"
 
 import (
 	"errors"

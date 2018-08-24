@@ -21,10 +21,10 @@ The standard Go float64 type is used in all computations.
 
 This package does *not* take advantage of multicore architectures.
 
-## Installation
+## Import
 
-```bash
-go get github.com/alcortesm/sample
+```
+import "github.com/alcortesm/sample"
 ```
 
 ## Examples
@@ -42,31 +42,19 @@ import (
 func main() {
 	data := []float64{1.1, 0.9, 1.1, 1.3, 1.0}
 
-	mean, err := sample.Mean(data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("mean = %1.2f\n", mean) // 1.08
+	// ignoring errors for demonstration purposes
+	mean, _ := sample.Mean(data)
+	fmt.Println(mean) // 1.08
 
-	sd, err := sample.StandardDeviation(data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("std. deviation = %1.2f\n", sd) // 0.15
+	sd, _ := sample.StandardDeviation(data)
+	fmt.Println(sd) // 0.15
 
-	se, err := sample.StandardError(data)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("std. error = %1.2f\n", se) // 0.07
+	se, _ := sample.StandardError(data)
+	fmt.Println(se) // 0.07
 
 	confidence := 0.95
-	ci, err := sample.MeanConfidenceIntervals(data, confidence)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("mean conf. intervals (%2.0f%%) = [%1.2f, %1.2f]\n",
-		100*confidence, ci[0], ci[1]) // [0.90, 1.26]
+	ci, _ := sample.MeanConfidenceIntervals(data, confidence)
+	fmt.Printf("[%1.2f, %1.2f]\n", ci[0], ci[1]) // [0.90, 1.26]
 }
 ```
 

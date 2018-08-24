@@ -27,7 +27,6 @@ func Mean(data []float64) (float64, error) {
 	if len(data) < 1 {
 		return 0.0, ErrSampleTooSmall
 	}
-
 	return sum(data) / float64(len(data)), nil
 }
 
@@ -36,7 +35,6 @@ func sum(s []float64) float64 {
 	for i := range s {
 		sum += s[i]
 	}
-
 	return sum
 }
 
@@ -76,7 +74,6 @@ func StandardError(data []float64) (float64, error) {
 	if err != nil {
 		return 0.0, err
 	}
-
 	return sd / math.Sqrt(float64(len(data))), nil
 }
 
@@ -89,13 +86,7 @@ func StandardError(data []float64) (float64, error) {
 //
 // If the confidence value is not in the ]0, 1[ it returns
 // ErrInvalidConfidence.
-func MeanConfidenceIntervals(data []float64, confidence float64) ([2]float64,
-	error) {
-
-	if invalidConfidence(confidence) {
-		return [2]float64{}, ErrInvalidConfidence
-	}
-
+func MeanConfidenceIntervals(data []float64, confidence float64) ([2]float64, error) {
 	se, err := StandardError(data)
 	if err != nil {
 		return [2]float64{}, err
@@ -114,8 +105,4 @@ func MeanConfidenceIntervals(data []float64, confidence float64) ([2]float64,
 	}
 
 	return [2]float64{mean - margin, mean + margin}, nil
-}
-
-func invalidConfidence(confidence float64) bool {
-	return confidence <= 0.0 || confidence >= 1.0
 }
